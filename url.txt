@@ -2,6 +2,8 @@ https://www.jianshu.com/p/641761c3591c?utm_campaign=maleskine&utm_content=note&u
 https://blog.csdn.net/weixin_34032827/article/details/91470711
 https://github.com/llaoj/oauth2
 
+Go 实现简易 RPC 框架
+https://segmentfault.com/a/1190000018466897?utm_source=sf-related
 
 http://wen.topgoer.com/docs/gomianshiti/mian100
 
