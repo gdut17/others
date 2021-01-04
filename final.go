@@ -32,8 +32,9 @@ var wg sync.WaitGroup
 var aeskey []byte
 
 /*需要修改的参数*/
-var m3u8Url = "http://127.0.0.1/1.m3u8"
-var reg = "[a-z0-9]{6}.ts"
+var m3u8URL string = "http://127.0.0.1/1.m3u8"
+var keyURL string = "http://127.0.0.1/1.key"
+var reg string = "[a-z0-9]{6}.ts"
 
 const format = `https://%s/%s/%s/%s/hls/%s`
 
@@ -52,16 +53,22 @@ func main() {
 	log.SetOutput(logFile) //设置输出位置
 
 	m3u8FileName := "1.m3u8"
-	m3u8Body := HttpReq(m3u8Url)
+	m3u8Body := HttpReq(m3u8URL)
 	Save(m3u8Body, m3u8FileName)
 
+	// 下载key.key
+	// Save(HttpReq(keyURL), "key.key")
+
+	// 正则匹配tsURL
 	num = RegexpUrl(m3u8Body, reg)
-	log.Printf("match %d %s\n", m3u8Url, num)
+	log.Printf("match %d %s\n", m3u8URL, num)
 	if num == 0 {
 		return
 	}
 
 	wg.Wait()
+
+	// MergeTs(num, false)
 }
 
 /*HttpReq 发起http请求,返回body*/
