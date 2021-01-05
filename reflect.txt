@@ -1,0 +1,28 @@
+funcs map[string]reflect.Value
+
+reflect.ValueOf(req.Args[i])
+
+f, ok := s.funcs[req.Name]
+
+
+
+
+inArgs := make([]reflect.Value, len(req.Args))
+				for i := range req.Args {
+					inArgs[i] = reflect.ValueOf(req.Args[i])
+				}
+				// invoke requested method
+				out := f.Call(inArgs)
+
+
+e = out[len(out)-1].Interface().(error).Error()
+
+
+
+container := reflect.ValueOf(fptr).Elem()
+
+
+outArgs[i] = reflect.Zero(container.Type().Out(i))
+
+var err error
+outArgs[len(outArgs)-1] = reflect.ValueOf(&err).Elem()
