@@ -16,13 +16,13 @@ import (
 )
 
 /*http请求参数设置*/
-var host string
-var date string
-var str string
-var flag string
+var host string = "lbbf9.com"
+var date string = "20200414"
+var str string = "efarCqmk"
+var flag string = "700kb"
 
-var origin string
-var referer string
+var origin string = "http://luolitv123.buzz"
+var referer string = "http://luolitv123.buzz/ff808081744e7aa70174921c467503ae.html"
 
 /*匹配个数*/
 var num int
@@ -32,14 +32,16 @@ var wg sync.WaitGroup
 var aeskey []byte
 
 /*需要修改的参数*/
-var m3u8URL string = "http://127.0.0.1/1.m3u8"
+var m3u8URL string = fmt.Sprintf("https://%s/%s/%s/%s/hls/index.m3u8", host, date, str, flag)
 var keyURL string = "http://127.0.0.1/1.key"
-var reg string = "[a-z0-9]{6}.ts"
+var reg string = "[0-9]{8}/[a-zA-Z0-9]{8,}/[a-zA-Z0-9]{5,}/hls/[a-zA-Z0-9]{4,}.ts"
 
-const format = `https://%s/%s/%s/%s/hls/%s`
+// /20200414/efarCqmk/700kb/hls/SXWbrS59.ts
+const format = `https://%s/%s` //`https://%s/%s/%s/%s/hls/%s`
 
 var ts string
-var args []interface{} = []interface{}{host, date, str, flag, ts}
+var args []interface{} = []interface{}{host, ts}
+//[]interface{}{host, date, str, flag, ts}
 
 func main() {
 	os.Mkdir("ts", os.ModePerm)
@@ -61,14 +63,14 @@ func main() {
 
 	// 正则匹配tsURL
 	num = RegexpUrl(m3u8Body, reg)
-	log.Printf("match %d %s\n", m3u8URL, num)
+	log.Printf("match %s %d\n", m3u8URL, num)
 	if num == 0 {
 		return
 	}
 
 	wg.Wait()
 
-	// MergeTs(num, false)
+	MergeTs(num, false)
 }
 
 /*HttpReq 发起http请求,返回body*/
