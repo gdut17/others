@@ -1,0 +1,28 @@
+https://www.cnblogs.com/wang-yaz/p/10429899.html
+
+启动、停止
+systemctl start docker.service
+
+查看docker状态
+systemctl status docker.service
+
+
+查看docker
+docker version
+docker info
+
+拉取镜像
+docker pull image_name
+
+查看本地镜像
+docker image ls
+
+查看所有容器
+docker ps -a
+
+查看正在运行容器
+docker ps 
+
+
+
+

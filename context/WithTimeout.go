@@ -1,3 +1,10 @@
+/*
+
+func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc) {
+	return WithDeadline(parent, time.Now().Add(timeout))
+}
+*/
+
 package main
 
 import (
@@ -15,14 +22,14 @@ var (
 func work(ctx context.Context) error {
 	defer wg.Done()
 
-	for i := 0; i < 1000; i++ {
+	for {
 		select {
-		case <-time.After(2 * time.Second):
-			fmt.Println("Doing some work ", i)
+		case <-time.After(1 * time.Second):
+			fmt.Println("sleep 1s")
 
 		// we received the signal of cancelation in this channel
 		case <-ctx.Done():
-			fmt.Println("Cancel the context ", i)
+			fmt.Println("Cancel by main")
 			return ctx.Err()
 		}
 	}
@@ -33,12 +40,11 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 
-	fmt.Println("Hey, I'm going to do some work")
+	fmt.Println("main begin")
 
 	wg.Add(1)
 	go work(ctx)
 	wg.Wait()
 
-	fmt.Println("Finished. I'm going home")
+	fmt.Println("main end")
 }
-
