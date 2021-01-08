@@ -9,42 +9,15 @@ import (
 	"strings"
 )
 
-func main1() {
-
-	body, _ := ioutil.ReadFile("fund.html")
-
-	// 09-30
-	// [-]{0,}\d.*)
-	str := `\d{1,}\.\d\d亿元`
-	r := regexp.MustCompile(str)
-	matchs := r.FindAllSubmatch(body, -1) //r.FindStringSubmatch(string(body))
-	//money := matchs[0]
-	fmt.Println(len(matchs))
-	fmt.Printf("%s\n", matchs[0])
-	for _, v := range matchs {
-		fmt.Println(string(v[0]))
-	}
-
-	str = `<a href="http://fund.eastmoney.com/company/[0-9]{3,}.html">.*?基金`
-	r = regexp.MustCompile(str)
-	matchs = r.FindAllSubmatch(body, -1) //r.FindStringSubmatch(string(body))
-	//money := matchs[0]
-	fmt.Println(len(matchs))
-	//fmt.Printf("%s\n", matchs[1])
-	for _, v := range matchs {
-		fmt.Println(string(v[0]))
-	}
-}
-
 func main() {
 	var id int = 161725
 	s := GetFundInfo(id)
-	fmt.Printf("%d %s %.2f %.2f %s\n", s.Id,
+	fmt.Printf("%06d %s %.2f%% %.2f亿元 %s\n", s.Id,
 		s.Name, s.Gains, s.Money, s.Union)
 
 	id = 3834
 	s = GetFundInfo(id)
-	fmt.Printf("%d %s %.2f %.2f %s\n", s.Id,
+	fmt.Printf("%06d %s %.2f%% %.2f亿元 %s\n", s.Id,
 		s.Name, s.Gains, s.Money, s.Union)
 }
 
@@ -98,41 +71,33 @@ func httpreq(id int) []byte {
 	}
 	return body
 }
+
 func GetFundInfo(Id int) Fund {
-	//body, _ := ioutil.ReadFile("fund.html")
 
 	body := httpreq(Id)
 	if body == nil {
 		return Fund{}
 	}
-	//fmt.Printf("%s\n", string(body))
 
-	fmt.Println("--------------")
 	var reg string = `<title>(.*?)\(`
 	compile := regexp.MustCompile(reg)
 	matchs := compile.FindStringSubmatch(string(body))
-	//fmt.Println(len(matchs))
 	title := matchs[1]
-	//fmt.Println(matchs[0])
-	//fmt.Println(title)
 
 	reg = `(.*?)([-]{0,}\d.*)\%`
 	compile = regexp.MustCompile(reg)
 	matchs = compile.FindStringSubmatch(string(body))
 	gain, _ := strconv.ParseFloat(matchs[2], 32)
-	//fmt.Println(gain)
 
 	reg = `\d{1,}\.\d\d亿元`
 	compile = regexp.MustCompile(reg)
-	matchsall := compile.FindAllSubmatch(body, -1) //r.FindStringSubmatch(string(body))
-	//fmt.Println("len=", len(matchsall))
+	matchsall := compile.FindAllSubmatch(body, -1)
 	s := string(matchsall[0][0])
 	money, _ := strconv.ParseFloat(s[:len(s)-7], 32)
-	//fmt.Println(money)
 
 	reg = `<a href="http://fund.eastmoney.com/company/[0-9]{3,}.html">.*?基金`
 	compile = regexp.MustCompile(reg)
-	matchsall = compile.FindAllSubmatch(body, -1) //r.FindStringSubmatch(string(body))
+	matchsall = compile.FindAllSubmatch(body, -1)
 	s = string(matchsall[0][0])
 	unioner := s[strings.Index(s, ">")+1:]
 
