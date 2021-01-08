@@ -28,7 +28,7 @@ var (
 )
 
 func main() {
-	file, err := os.Open("./mycode.txt")
+	file, err := os.Open("./2x.txt")
 	if err != nil {
 		fmt.Println("read file failed")
 		return
@@ -139,7 +139,15 @@ func Run(id int) {
 
 	f, _ := strconv.ParseFloat(gains, 32)
 
-	//fmt.Printf("%06d %s %.2f \n", id, title,  f)
+	str = `<span>(.*?)</span>`
+	r = regexp.MustCompile(str)
+	matchs = r.FindStringSubmatch(string(body))
+	money := matchs[0]
+	fmt.Println(len(matchs))
+
+	f, _ = strconv.ParseFloat(money, 32)
+
+	fmt.Printf("%06d %s %.2f %.2f\n", id, title,  f, money)
 
 	mutex.Lock()
 	Funds = append(Funds, Fund{id, title, f})
