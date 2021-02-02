@@ -1,11 +1,6 @@
-/*
-	2021.01.04
-*/
 package main
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -13,35 +8,24 @@ import (
 	"os"
 	"regexp"
 	"sync"
+	"time"
 )
 
 /*http请求参数设置*/
-var host string = "lbbf9.com"
-var date string = "20200414"
-var str string = "efarCqmk"
-var flag string = "700kb"
+var host string = "formaxfr.xyz"
+var date string = "20200405"
+var str string = "jcP3VEGv"
+var flag string = "1000kb"
 
-var origin string = "http://luolitv123.buzz"
-var referer string = "http://luolitv123.buzz/ff808081744e7aa70174921c467503ae.html"
+var origin string = "https://jokerlu4.com"
+var referer string = "https://jokerlu4.com"
 
 /*匹配个数*/
 var num int
 var wg sync.WaitGroup
 
-/*AES key*/
-var aeskey []byte
-
-/*需要修改的参数*/
-var m3u8URL string = fmt.Sprintf("https://%s/%s/%s/%s/hls/index.m3u8", host, date, str, flag)
-var keyURL string = "http://127.0.0.1/1.key"
-var reg string = "[0-9]{8}/[a-zA-Z0-9]{8,}/[a-zA-Z0-9]{5,}/hls/[a-zA-Z0-9]{4,}.ts"
-
-// /20200414/efarCqmk/700kb/hls/SXWbrS59.ts
-const format = `https://%s/%s` //`https://%s/%s/%s/%s/hls/%s`
-
-var ts string
-var args []interface{} = []interface{}{host, ts}
-//[]interface{}{host, date, str, flag, ts}
+//https://formaxfr.xyz/20200405/jcP3VEGv/1000kb/hls/2EgsRe7U.jpg
+var reg string = fmt.Sprintf("https://[0-9a-zA-Z.]{5,}/%s/%s/%s/hls/[0-9a-zA-Z]{5,}.jpg", date, str, flag)
 
 func main() {
 	os.Mkdir("ts", os.ModePerm)
@@ -49,28 +33,24 @@ func main() {
 
 	logFile, err := os.OpenFile("./down.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
-		fmt.Println("open log file failed, err:", err)
+		log.Println("open log file failed, err:", err)
 		return
 	}
 	log.SetOutput(logFile) //设置输出位置
 
-	m3u8FileName := "1.m3u8"
-	m3u8Body := HttpReq(m3u8URL)
-	Save(m3u8Body, m3u8FileName)
+	f, _ := os.OpenFile("1.m3u8", os.O_RDONLY, os.ModePerm)
+	m3u8Body, _ := ioutil.ReadAll(f)
 
-	// 下载key.key
-	// Save(HttpReq(keyURL), "key.key")
+	start := time.Now()
 
 	// 正则匹配tsURL
-	num = RegexpUrl(m3u8Body, reg)
-	log.Printf("match %s %d\n", m3u8URL, num)
-	if num == 0 {
-		return
-	}
+	RegexpUrl(m3u8Body, reg)
 
 	wg.Wait()
 
-	MergeTs(num, false)
+	MergeTs(num)
+
+	fmt.Printf("time: %s\n", time.Since(start))
 }
 
 /*HttpReq 发起http请求,返回body*/
@@ -122,6 +102,8 @@ func RegexpUrl(body []byte, reg string) int {
 	submatch := compile.FindAllSubmatch(body, -1)
 	num = len(submatch)
 
+	log.Printf("match %d\n", num)
+
 	if num == 0 {
 		fmt.Println("no match")
 		return 0
@@ -130,8 +112,9 @@ func RegexpUrl(body []byte, reg string) int {
 	for k, v := range submatch {
 		//url := fmt.Sprintf("https://%s/%s/%s/%s/hls/%s", host, date, str, flag, string(v[0]))
 
-		args[len(args)-1] = string(v[0])
-		url := fmt.Sprintf(format, args...)
+		//args[len(args)-1] = string(v[0])
+		//url := fmt.Sprintf(format, args...)
+		url := string(v[0])
 		fmt.Printf("go %d %s\n", k, url)
 
 		wg.Add(1)
@@ -172,7 +155,11 @@ func Save(body []byte, filename string) error {
 }
 
 /*MergeTs 合并ts文件*/
-func MergeTs(num int, isAES bool) {
+func MergeTs(num int) {
+	if num <= 0 {
+		return
+	}
+
 	tsFile := fmt.Sprintf("./merge/all_%s_%s.ts", date, str)
 	file, err := os.Open(tsFile)
 	if err == nil {
@@ -203,36 +190,14 @@ func MergeTs(num int, isAES bool) {
 			return
 		}
 
-		if isAES == true {
-			b, err = AesDecrypt(b, aeskey)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-		}
-
 		//追加写入
 		fii.Write(b)
 		f.Close()
 
 		//删除文件
-		os.Remove(fname)
+		//os.Remove(fname)
 
 		fmt.Println(i, "ok")
 	}
 	fmt.Println("done")
-}
-
-/*AesDecrypt AES-128J解密*/
-func AesDecrypt(crypted, key []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-
-	blockSize := block.BlockSize()
-	blockMode := cipher.NewCBCDecrypter(block, key[:blockSize])
-	origData := make([]byte, len(crypted))
-	blockMode.CryptBlocks(origData, crypted)
-	return origData, nil
 }
